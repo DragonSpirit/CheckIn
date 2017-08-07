@@ -15,7 +15,7 @@ export default class Launch extends Component {
   render() {
     return (
         <View>
-          <Text>Inital Page, choose your action</Text>
+          <Text>Initial Page, choose your action</Text>
           <Button onPress={()=> Actions.CheckIn()} title="Go to checkin page" style={{padding:10}}>
             Go to checkin page
           </Button>
