@@ -1,8 +1,12 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, TextInput, View, Button, ListView} from 'react-native';
+import {StyleSheet, Text, TextInput, View, Button, ListView, TouchableOpacity} from 'react-native';
 import options from '../options'
 import CheckIn from "./CheckIn";
-import Row from './Row'
+
+/**
+ * Class representing checking out view
+ */
+
 export default class CheckOut extends Component {
 
   async getGuests() {
@@ -10,11 +14,12 @@ export default class CheckOut extends Component {
   }
 
   rawData = [];
+  ds = null;
 
-  async componentDidMount() {
+  async componentWillMount() {
     this.rawData = await this.getGuests();
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-    this.setState({rawData: this.rawData, dataSource: ds.cloneWithRows(this.rawData)});
+    this.rawData = this.rawData.filter((i) => i.isCurrentlyInRoom);
+    this.setState({rawData: this.rawData, dataSource: this.ds.cloneWithRows(this.rawData)});
   }
 
   constructor(props) {
@@ -23,35 +28,70 @@ export default class CheckOut extends Component {
       rawData: [],
       searchText: ''
     };
+    this.ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
   }
+
+  /**
+   * Filter array pf visitors by room number
+   * @param event
+   */
 
   setSearchText(event) {
     let searchText = event.nativeEvent.text;
     this.setState({searchText});
     let data = this.rawData;
 
-    let filteredData = (searchText.length > 0) ? this.filterNotes(searchText, data): data;
-    const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+    let filteredData = (searchText.length > 0) ? this.filterVisitors(searchText, data) : data;
 
     this.setState({
-      dataSource: ds.cloneWithRows(filteredData),
+      dataSource: this.ds.cloneWithRows(filteredData),
       rawData: data,
     });
   }
 
-  filterNotes(room, notes) {
-    return notes.filter((n) => {
-      return n.room === parseInt(room);
-    });
+  filterVisitors(room, visitors) {
+    return visitors.filter((v) =>
+       v.room === parseInt(room) && v.isCurrentlyInRoom
+    );
   }
 
-  styles = StyleSheet.create({
-    searchBar: {
-      height: 40,
-      borderColor: 'gray',
-      borderWidth: 1
-    }
-  });
+  onItemClick(item) {
+    let index =  this.state.rawData.findIndex((i) => i.id === item.id);
+    let data = this.state.rawData.slice();
+    data[index].isCurrentlyInRoom = false;
+
+    console.log(`### CheckOut - Update raw data to ${JSON.stringify(data)}`);
+
+    let visibleData = data.filter((i) => i.isCurrentlyInRoom);
+
+    this.setState({
+      dataSource: this.ds.cloneWithRows(visibleData),
+      rawData: data
+    }, async () => {
+          await CheckIn.setDataToStorage(options.storage_name, data);
+          alert("Successfully checked out guest");
+      }
+    );
+  }
+
+  /**
+   * Render row using data
+   * @param {object} data
+   * @private
+   */
+
+  _renderRow(data) {
+    const {room, name, surname} = data;
+    return (
+        <TouchableOpacity
+            style={this.styles.container}
+            onPress={() => this.onItemClick(data)}>
+          <Text style={this.styles.text}>
+            {`Room: ${room}, ${name} ${surname}`}
+          </Text>
+        </TouchableOpacity>
+    );
+  }
 
   render() {
     return (
@@ -61,19 +101,20 @@ export default class CheckOut extends Component {
                   <TextInput
                       style={this.styles.searchBar}
                       value={this.state.searchText}
-                      onChange={this.setSearchText.bind(this)}
+                      onChange={::this.setSearchText}
                       placeholder="Room number"
                   />
                   <ListView
                       dataSource={this.state.dataSource}
-                      renderRow={(data) => <Row {...data} />}
+                      renderRow={::this._renderRow}
                       renderSeparator={(sectionId, rowId) => <View key={rowId} />}
+                      enableEmptySections={true}
                   />
                 </View>
               )
               : (
                   <Text>
-                  No data
+                      No data
                   </Text>
             )
           }
@@ -81,4 +122,22 @@ export default class CheckOut extends Component {
         </View>
     );
   }
+
+  styles = StyleSheet.create({
+    searchBar: {
+      height: 40,
+      borderColor: 'gray',
+      borderWidth: 1
+    },
+    container: {
+      flex: 1,
+      padding: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    text: {
+      marginLeft: 12,
+      fontSize: 16,
+    }
+  });
 }

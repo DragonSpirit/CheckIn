@@ -1,12 +1,15 @@
 import React, {Component} from 'react';
-import {Image,  StyleSheet, Text, TextInput, View, Button} from 'react-native';
+import {Text, View, Button} from 'react-native';
 import {Actions} from "react-native-router-flux";
+
+/**
+ * Base class contains navigation buttons for routing
+ */
 
 export default class Launch extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {text: ''};
   }
 
   render() {
@@ -21,9 +24,6 @@ export default class Launch extends Component {
           </Button>
           <Button onPress={()=> Actions.History()} title="Go to history page" style={{padding:10}}>
             Go to history page
-          </Button>
-          <Button onPress={()=> Actions.CurrentGuests()} title="Go to current guests page" style={{padding:10}}>
-            Go to current guests page
           </Button>
         </View>
     );

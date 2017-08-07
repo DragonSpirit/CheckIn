@@ -11,10 +11,16 @@ export default class CheckIn extends Component {
       name: '',
       surname: '',
       room: 0,
-      date: Date.now(),
+      date: new Date(),
       isCurrentlyInRoom: true
     };
   }
+
+  /**
+   * Get data from internal async storage by key
+   * @param {string} key - The string containing key to access
+   * @returns {Promise.<Array>}
+   */
 
   static async getDataFromStorage (key) {
     console.log(`### STORAGE - Reading key: ${key}`);
@@ -33,6 +39,13 @@ export default class CheckIn extends Component {
     }
   }
 
+  /**
+   * Put data to internal async storage
+   * @param {string} key - The string containing key to access
+   * @param {string} data - The string containing stringify data
+   * @returns {Promise.<boolean>}
+   */
+
    static async setDataToStorage (key, data){
     try {
       await AsyncStorage.setItem(key, JSON.stringify(data));
@@ -43,6 +56,12 @@ export default class CheckIn extends Component {
       return false;
     }
   }
+
+  /**
+   * Clear internal async storage by key
+   * @param {string} key - The string containing key to access
+   * @returns {Promise.<boolean>}
+   */
 
   static async clearStorageByKey (key){
      try {
@@ -55,11 +74,15 @@ export default class CheckIn extends Component {
     }
   }
 
+  /**
+   * Callback for creating new visitors
+   */
+
   onAddVisitor() {
     console.log('### VISITOR - Try to add visitor:');
     this.setState({
       id: (Math.random().toString()).replace('0.','') + Date.now(),
-      data: Date.now()
+      date: new Date()
     }, async () => {
       let data = await CheckIn.getDataFromStorage(options.storage_name);
       if (data) {
@@ -106,6 +129,9 @@ export default class CheckIn extends Component {
                 Please fill all input field
               </Text>
           )}
+          {/*<Button title="Clear Visitors" onPress={() => CheckIn.clearStorageByKey(options.storage_name)}>
+            Clear Visitors
+          </Button>*/}
         </View>
     );
   }
