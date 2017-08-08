@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {Text, View, ListView} from 'react-native';
 import Calendar from 'react-native-calendar-datepicker';
 import Moment from 'moment';
-import CheckIn from "./CheckIn";
+import Storage from '../utils/storage'
 import options from "../options";
 
 
@@ -16,7 +16,7 @@ export default class History extends Component {
   ds = null;
 
   async componentWillMount() {
-    this.rawData = await CheckIn.getDataFromStorage(options.storage_name);
+    this.rawData = await Storage.getDataFromStorage(options.storage_name);
 
     let filteredData = this.rawData.filter((el) =>
         Moment(el.date).isSame(Moment(this.state.selectedDate), 'day')
@@ -77,7 +77,7 @@ export default class History extends Component {
           <Calendar
               onChange={::this.onDateSelect}
               selected={this.state.selectedDate}
-              minDate={Moment().startOf('day')}
+              minDate={Moment().add(-10, 'days').startOf('day')}
               maxDate={Moment().add(10, 'years').startOf('day')}
           />
           {this.state.filteredData.length > 0 &&

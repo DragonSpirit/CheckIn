@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {StyleSheet, Text, TextInput, View, Button, ListView, TouchableOpacity} from 'react-native';
 import options from '../options'
-import CheckIn from "./CheckIn";
+import Storage from '../utils/storage'
 
 /**
  * Class representing checking out view
@@ -10,7 +10,7 @@ import CheckIn from "./CheckIn";
 export default class CheckOut extends Component {
 
   async getGuests() {
-    return await CheckIn.getDataFromStorage(options.storage_name);
+    return await Storage.getDataFromStorage(options.storage_name);
   }
 
   rawData = [];
@@ -68,7 +68,7 @@ export default class CheckOut extends Component {
       dataSource: this.ds.cloneWithRows(visibleData),
       rawData: data
     }, async () => {
-          await CheckIn.setDataToStorage(options.storage_name, data);
+          await Storage.setDataToStorage(options.storage_name, data);
           alert("Successfully checked out guest");
       }
     );
